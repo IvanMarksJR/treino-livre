@@ -1,0 +1,28 @@
+# Limitações conhecidas
+- Fotos aproximadas (não são exatamente o exercício descrito): **Polichinelo** (foto é o salto em estrela, começa agachado); **Caminhada** (foto mostra corrida leve ao ar livre); **Agachamento com pausa** (usa a foto da posição baixa do agachamento, com selo "pausa").
+- **Elevação de panturrilha**: a foto mostra o praticante com halteres (faça sem peso). **Corrida estacionária**: foto de skipping rápido no lugar. Ambos têm aviso na tela.
+- As fotos são em ambiente de academia (alguns com aparelhos ao fundo) e mostram mãos atrás da cabeça no agachamento.
+- Sem barra/acessórios não há exercício de puxada; Superman não substitui treino de costas.
+- Progressão de 8 semanas é **sugestão em texto**; o app não altera sua rotina sozinho.
+- Armazenamento local: apagar dados do site/desinstalar remove tudo; iOS pode limpar dados de sites sem uso por semanas fora de PWA instalado. Sem sincronização entre aparelhos.
+- Abrir via file:// não registra service worker.
+- Não incluí a foice e o martelo e a estátua do mockup; apenas a estrela vermelha.
+- Ícone do PWA é SVG; alguns iPhones preferem PNG.
+- O mockup mostra "420 kcal (gasto estimado)": não incluí, pois seria número estimado e não registrado. No lugar há a sequência de dias seguidos (real).
+- A aba "Configurações" saiu da barra inferior (como no mockup) e fica na engrenagem do Início.
+- Os banners da Rotina são recortes pequenos do mockup e podem ficar levemente suavizados.
+- Fotos da panturrilha, corrida, polichinelo e caminhada foram recortadas/aproximadas e têm aviso (⚠) na tela do exercício.
+- A grade de exercícios mostra a foto inteira (sem cortes) com o nome abaixo.
+- Segunda: flexão tradicional, fechada, prancha (nos antebraços) e superman agora usam fotos do Free Exercise DB; a **Flexão Pike** usa uma ilustração em 3 etapas (CC BY-SA 4.0, com crédito na tela), e não foto.
+- Prancha mostra só a posição final (a foto inicial do banco é o praticante ajoelhado).
+- Vídeos: o app suporta, mas nenhum pacote de vídeos livre pôde ser baixado automaticamente; os vídeos precisam ser adicionados na pasta `videos/`.
+- Flexão diamante dos prints não entrou: o acervo livre só tem foto da flexão de mãos próximas, que já é a "flexão fechada" do app.
+- Várias fotos novas mostram halteres, banco ou barra; o app avisa como adaptar com garrafas, cadeira, mesa e mochila.
+- As imagens do perfil @protocolomuscular não foram usadas (sem licença); só a lista de exercícios serviu de referência.
+- Faixas de séries/repetições dos níveis são sugestões gerais, não prescrição individual.
+- 14 dos 59 exercícios estão sem foto (ver `PENDENCIAS-IMAGENS.md`); a tela mostra o aviso "Sem imagem disponível". Agachamento búlgaro usa foto aproximada.
+- O slide de glúteos (8 exercícios) dos prints ainda não foi recebido; hoje só a ponte de glúteos está cadastrada nesse grupo.
+- Vídeos: só 2 exercícios têm vídeo (ponte e flexão fechada). Nos trechos recortados, outras pessoas da aula aparecem parcialmente ao fundo. O vídeo-fonte não tinha polichinelo, mountain climbers, prancha parada nem flexão tradicional; o afundo lateral do vídeo não formava um ciclo limpo e foi descartado.
+- Os vídeos são MP4 (H.264) para funcionar no iPhone e no Android; a conferência de reprodução nos testes foi feita com a versão WebM do mesmo clipe.
+- Cronômetro: no iPhone a vibração não funciona no navegador (só som e cor); o sinal sonoro exige que você tenha tocado em "Iniciar cronômetro". Se a tela do celular apagar, o tempo continua correto, mas os sinais podem não tocar.
+- O ritmo de cada exercício (tempos de descer, pausar, subir) é uma sugestão geral e pode ser ajustado no futuro por exercício.

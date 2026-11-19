@@ -1,0 +1,6 @@
+Coloque aqui os vídeos curtos dos exercícios (MP4 ou WebM, 3 a 8 s, em loop, sem som).
+Nome sugerido = id do exercício, por exemplo: flexao-tradicional.mp4
+Depois liste no arquivo ../videos.json, assim:
+{ "flexao-tradicional": "videos/flexao-tradicional.mp4", "agachamento": "videos/agachamento.mp4" }
+Exercícios sem vídeo continuam com as fotos.
+IDs: flexao-tradicional, flexao-fechada, flexao-pike, prancha, superman, agachamento, agachamento-pausa, afundo, panturrilha, ponte, polichinelo, corrida, mountain, circuito-flexoes, caminhada, mobilidade-quadril, mobilidade-ombros, alongamento
