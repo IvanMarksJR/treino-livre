@@ -62,3 +62,9 @@ Na tela do treino, toque em "Iniciar cronômetro". Ele conduz: **preparo** (padr
 - **Exercícios por repetição:** o app guia o ritmo, repetição por repetição ("Repetição 3 de 10"), e **encerra a série sozinho ao completar o número planejado** (você pode tocar em "Terminar série" antes, se não conseguir mais). Ele segue o ritmo com as pausas de cada exercício (ex.: agachamento com pausa = Descer 2 s, Pausa embaixo 2 s, Subir 1 s). **As repetições são contadas por você** (botão +1 ou o contador); o app nunca preenche sozinho.
 - **O app só avança quando a série anterior está registrada.** Se o descanso acabar sem registro, ele espera.
 - Botões: pausar, pular fase, parar. Sinal sonoro, vibração (onde o aparelho permitir) e tempos podem ser ajustados em Configurações. A tela é mantida acesa durante o cronômetro, quando o navegador permite.
+
+## Versão e atualização (v1.6.2)
+- A versão em uso aparece em Configurações ("Versão do app") e também no rodapé do cronômetro.
+- O app compara sua versão com o arquivo `version.json` do site; se forem diferentes, mostra o aviso "Nova versão disponível". Ao publicar uma nova versão, atualize também o número em `version.json`.
+- Em Configurações há "Forçar atualização": limpa só o cache dos arquivos do app e recarrega. **Não apaga treinos nem histórico.**
+- O ritmo do cronômetro agora é calculado sem acumular atraso entre as fases.

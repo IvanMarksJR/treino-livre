@@ -1,4 +1,4 @@
-import json,os,shutil
+import json,os,shutil,time
 from playwright.sync_api import sync_playwright
 U='http://localhost:8765/index.html';R=[];ud='/tmp/prof';shutil.rmtree(ud,ignore_errors=True)
 def ok(n,c,d=''):R.append((n,bool(c),d));print(('PASS' if c else 'FAIL'),n,d)
@@ -202,7 +202,24 @@ with sync_playwright() as p:
     ok('T13 registrou 2 e 4 e concluiu o treino',pg.evaluate("(()=>{const l=Object.values(__app.S.logs[run.date].items);return l[1].sets[0]===2&&l[1].sets[1]===4&&l[1].done===true})()"))
     pg.click('[data-a=tmStop]');ok('T13 fechar cronômetro',pg.evaluate("__app.TM===null"))
     pg.evaluate("V.stack=[{name:'config'}];render()");pg.fill('[data-tm=rest]','20');pg.wait_for_timeout(500)
-    ok('T13 configuração do descanso salva',pg.evaluate("__app.S.settings.tm.rest===20"));c.close()
+    ok('T13 configuração do descanso salva',pg.evaluate("__app.S.settings.tm.rest===20"))
+    # T14 precisão do ritmo e checagem de versão
+    c.close()
+    shutil.rmtree('/tmp/prof10',ignore_errors=True)
+    c=p.chromium.launch_persistent_context('/tmp/prof10',viewport={'width':390,'height':800});pg=c.pages[0];pg.on('pageerror',lambda e:errs.append(str(e)))
+    pg.goto(U);pg.wait_for_selector('nav');pg.wait_for_timeout(700)
+    pg.evaluate("""(()=>{const S=__app.S;S.settings.level='inter';closeModal();S.settings.tm={prep:1,rest:30,next:1,sound:false,vibe:false};
+     S.routine[0].items=[{id:'q1',ex:'flexao-tradicional',sets:2,reps:4,unit:'rep',notes:'',custom:true}];__app.A.startRun(monday(today()))})()""")
+    pg.wait_for_selector('[data-a=tmStart]');pg.click('[data-a=tmStart]');pg.wait_for_function("__app.TM.ph==='work'",timeout=5000);t0=time.time()
+    pg.wait_for_function("__app.TM.ph==='rest'",timeout=20000);dt=time.time()-t0
+    ok('T14 série de 4 reps x 3 s dura 12 s, sem acúmulo de atraso',abs(dt-12)<0.6,f'{dt:.2f}s')
+    pg.evaluate("V.stack=[{name:'config'}];render()");ok('T14 Configurações mostra a versão em uso e o botão de forçar atualização',"Em uso" in pg.inner_text('#main') and pg.evaluate("!!document.querySelector('[data-a=askHard]')"));c.close()
+    vp='/home/claude/app/version.json';vorig=open(vp).read()
+    try:
+        open(vp,'w').write('{"v":"0.0.1"}')
+        b3=p.chromium.launch();c3=b3.new_context(viewport={'width':390,'height':800},service_workers='block');pg=c3.new_page();pg.goto(U);pg.wait_for_selector('nav');pg.wait_for_timeout(1200)
+        ok('T14 versão do servidor diferente da em uso mostra o aviso "Nova versão disponível"',pg.evaluate("!document.querySelector('#upd').hidden"));b3.close()
+    finally:open(vp,'w').write(vorig)
 
 print('ERROS JS:',errs)
 json.dump(R,open('/home/claude/results.json','w'))

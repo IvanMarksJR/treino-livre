@@ -1,4 +1,5 @@
 'use strict';
+const APP_VER='1.6.2';
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const DN=['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'],DS=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -139,22 +140,22 @@ function unwake(){try{WL&&WL.release()}catch(e){}WL=null}
 const restFor=id=>{const g=getEx(id).g,c=tmc();return g==='mobilidade'?Math.min(10,c.rest):(g==='cardio'||g==='core')?Math.min(30,c.rest):c.rest};
 function tmCtx(){const l=logOf(run.date,true),its=S.routine[l.day].items,it=its[run.i],li=l.items[it.id];return {l,its,it,li,k:curSet(li),n:li.plan.sets,u:li.plan.unit,id:it.ex}}
 const isReg=(li,k)=>li.sets[k]!==''&&li.sets[k]!=null;
-function tmSet(ph,secs,label){TM.ph=ph;TM.label=label;TM.total=secs;TM.end=Date.now()+secs*1000;TM.paused=false;TM.last=-1;beep(ph==='work'?1200:700,ph==='work'?.3:.15);vib(ph==='work'?120:60);tmDraw()}
-function tmStart(){const c=tmc();TM={ph:'prep',ri:0,rep:1};try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume&&AC.resume()}catch(e){}wake();clearInterval(TMI);TMI=setInterval(tmTick,200);tmSet('prep',c.prep,'Prepare-se')}
+function tmSet(ph,secs,label,chain){TM.ph=ph;TM.label=label;TM.total=secs;{const nw=Date.now();TM.end=((chain&&TM.end&&nw-TM.end<1500)?TM.end:nw)+secs*1000}TM.paused=false;TM.last=-1;beep(ph==='work'?1200:700,ph==='work'?.3:.15);vib(ph==='work'?120:60);tmDraw()}
+function tmStart(){const c=tmc();TM={ph:'prep',ri:0,rep:1};try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume&&AC.resume()}catch(e){}wake();clearInterval(TMI);TMI=setInterval(tmTick,100);tmSet('prep',c.prep,'Prepare-se')}
 function tmStop(){if(TMI)clearInterval(TMI);TMI=null;TM=null;unwake();tmDraw()}
 function tmTick(){if(!TM||TM.paused||TM.ph==='wait'||TM.ph==='done')return;
  const left=Math.max(0,Math.ceil((TM.end-Date.now())/1000));
  if(left<=3&&left>0&&left!==TM.last){TM.last=left;beep(660,.08)}
  const n=document.getElementById('tmnum');if(n)n.textContent=tmFmt(left);
  const b=document.getElementById('tmbar');if(b)b.style.width=(TM.total?100-left/TM.total*100:0)+'%';
- if(Date.now()>=TM.end)tmNext()}
-function tmNext(){if(!TM)return;let x;try{x=tmCtx()}catch(e){return tmStop()}const {li,u,id}=x;
+ if(Date.now()>=TM.end)tmNext(true)}
+function tmNext(auto){if(!TM)return;let x;try{x=tmCtx()}catch(e){return tmStop()}const {li,u,id}=x;
  if(TM.ph==='prep'){
-  if(u==='s')tmSet('work',li.plan.reps,'Segure / execute');
-  else if(u==='min')tmSet('work',li.plan.reps*60,'Em movimento');
-  else{TM.ri=0;TM.rep=1;const r=RTof(id)[0];tmSet('work',r[1],r[0])}
+  if(u==='s')tmSet('work',li.plan.reps,'Segure / execute',auto);
+  else if(u==='min')tmSet('work',li.plan.reps*60,'Em movimento',auto);
+  else{TM.ri=0;TM.rep=1;const r=RTof(id)[0];tmSet('work',r[1],r[0],auto)}
  }else if(TM.ph==='work'){
-  if(u==='rep'){const R=RTof(id);let ni=TM.ri+1;if(ni>=R.length){ni=0;TM.rep++;if(TM.rep>li.plan.reps){beep(1000,.35);vib(150);return tmAfterWork()}}TM.ri=ni;tmSet('work',R[ni][1],R[ni][0])}else tmEndWork(true)
+  if(u==='rep'){const R=RTof(id);let ni=TM.ri+1;if(ni>=R.length){ni=0;TM.rep++;if(TM.rep>li.plan.reps){beep(1000,.35);vib(150);return tmAfterWork()}}TM.ri=ni;tmSet('work',R[ni][1],R[ni][0],auto)}else tmEndWork(true)
  }else if(TM.ph==='rest')tmAfterRest();
  else if(TM.ph==='next')tmAdvance()}
 function tmEndWork(full){const x=tmCtx(),{li,k,u}=x;
@@ -183,8 +184,9 @@ function tmInner(){const x=tmCtx(),c=tmc();
  const left=TM.paused?Math.ceil(TM.left):Math.max(0,Math.ceil((TM.end-Date.now())/1000)),cls={prep:'prep',work:'work',rest:'rest',next:'rest',wait:'wait',done:'done'}[TM.ph],fin=(TM.ph==='wait'||TM.ph==='done');
  const skipTxt={prep:'Pular preparo',work:x.u==='rep'?'Terminar série':'Parei',rest:'Pular descanso',next:'Ir agora'}[TM.ph];
  const rh=(TM.ph==='work'&&x.u==='rep'?`<div class="tmrep">Repetição ${Math.min(TM.rep,x.li.plan.reps)} de ${x.li.plan.reps}</div><div class="mut ctr"><small>${RTof(x.id).map(r=>r[0]+' '+r[1]+'s').join(' · ')}</small></div>`:'')+((TM.ph==='rest'||TM.ph==='next')&&x.u==='rep'&&!isReg(x.li,x.k)?`<div class="tmhint">👇 Registre quantas repetições você fez nesta série</div>`:'');
- return `<div class="tmh ${cls}"><div class="tml" id="tmlab">${esc(TM.label)}${TM.paused?' · pausado':''}</div><div class="tmn" id="tmnum">${fin?'✓':tmFmt(left)}</div><div class="tmbar"><i id="tmbar" style="width:${TM.total&&!fin?100-left/TM.total*100:100}%"></i></div><div class="mut ctr"><small>Série ${x.k+1} de ${x.n}</small></div>${rh}</div>
+ return `<div class="tmh ${cls}"><div class="tml" id="tmlab">${esc(TM.label)}${TM.paused?' · pausado':''}</div><div class="tmn" id="tmnum">${fin?'✓':tmFmt(left)}</div><div class="tmbar"><i id="tmbar" style="width:${TM.total&&!fin?100-left/TM.total*100:100}%"></i></div><div class="mut ctr"><small>Série ${x.k+1} de ${x.n}</small></div>${rh}<div class="tmver">v${APP_VER}</div></div>
  <div class="tmb">${TM.ph==='work'&&x.u==='rep'?`<button class="btn red" data-a="cnt" data-p="1">+1 repetição</button>`:''}${skipTxt?`<button class="btn gray" data-a="tmSkip">${skipTxt}</button>`:''}${fin?'':`<button class="btn gray" data-a="tmPause">${TM.paused?'▶ Retomar':'⏸ Pausar'}</button>`}<button class="btn gray" data-a="tmStop">■ ${fin?'Fechar':'Parar'}</button></div>`}
+async function hardUpdate(){try{const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.unregister()))}catch(e){}try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}location.reload()}
 /* ===== Telas ===== */
 const IC={gear:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>',cal:'<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>'};
 const LOGO='<svg viewBox="62 62 388 388" width="64" height="64" aria-hidden="true"><g transform="rotate(-35 256 256)"><rect x="136" y="243" width="240" height="26" rx="13" fill="#ffffff"/><rect x="98" y="165" width="43" height="182" rx="17" fill="#ffffff"/><rect x="371" y="165" width="43" height="182" rx="17" fill="#ffffff"/><rect x="61" y="197" width="37" height="118" rx="14" fill="#d9d9d9"/><rect x="414" y="197" width="37" height="118" rx="14" fill="#d9d9d9"/></g></svg>';
@@ -274,9 +276,10 @@ function vConfig(){return `<header class="bar"><button class="back" data-a="back
  <section class="cfgc"><span class="cic g">⬆</span><div><b>Restaurar Dados</b><br><small class="mut">Importar backup</small></div><button class="btn sm greenb" data-a="importPick">Importar</button></section>
  <input type="file" id="imp" accept="application/json,.json" hidden>
  <section class="card"><h3>Nível do treino</h3><div class="lvrow">${Object.keys(LEVELS).map(k=>`<button class="chip2 ${k===lvl()?'sel':''}" data-a="setLevel" data-p="${k}">${LEVELS[k].n}</button>`).join('')}</div><p class="mut"><small>${LEVELS[lvl()].d}</small></p><button class="btn gray" data-a="applyLvl2">Aplicar nível à rotina</button><button class="btn gray" data-a="offerNew">Aplicar nova rotina sugerida</button></section>
+ <section class="card"><h3>Versão do app</h3><p>Em uso: <b>v${APP_VER}</b></p><button class="btn gray" data-a="askHard">🔄 Forçar atualização (limpa só o cache do app)</button></section>
  <section class="card"><h3>⏱ Cronômetro</h3><div class="r3"><div><label>Preparo (s)</label><input type="number" min="0" data-tm="prep" value="${tmc().prep}"></div><div><label>Descanso (s)</label><input type="number" min="0" data-tm="rest" value="${tmc().rest}"></div><div><label>Entre exerc. (s)</label><input type="number" min="0" data-tm="next" value="${tmc().next}"></div></div><label class="chk2"><input type="checkbox" data-tmc="sound" ${tmc().sound?'checked':''}> Sinal sonoro</label><label class="chk2"><input type="checkbox" data-tmc="vibe" ${tmc().vibe?'checked':''}> Vibração (onde o aparelho permitir)</label><p class="mut"><small>No treino, toque em "Iniciar cronômetro". Ele guia preparo, ritmo e descanso, mas só avança depois que você registra a série.</small></p></section>
  <section class="card"><label>Início do plano de 8 semanas (segunda-feira)</label><input type="date" id="startDate" value="${S.settings.start}"></section>
- <section class="cfgc"><span class="cic">ℹ</span><div><b>Sobre o App</b><br><small class="mut">Treino Livre v1.6.1<br>Disciplina e evolução. Dados salvos só neste aparelho.</small></div></section>
+ <section class="cfgc"><span class="cic">ℹ</span><div><b>Sobre o App</b><br><small class="mut">Treino Livre v${APP_VER}<br>Disciplina e evolução. Dados salvos só neste aparelho.</small></div></section>
  <section class="card dicas"><h3>💡 Dicas importantes</h3><ul><li>Mantenha a técnica correta.</li><li>Respeite o descanso; pare diante de dor aguda ou mal-estar.</li><li>Faça aquecimento e mantenha 2–3 repetições na reserva.</li><li>Não compense treinos perdidos com excesso.</li><li><b>Limitação:</b> sem barra ou acessórios não há exercício de puxada; Superman não substitui treino das costas.</li></ul></section>
  <button class="btn gray big" data-a="resetRoutine">Restaurar rotina inicial (mantém histórico)</button>
  <button class="btn red big" data-a="clearAsk">🗑 Resetar Dados</button>`}
@@ -313,6 +316,8 @@ const A={
  libAdd(id){addForm(id)},
  libSave(id){const i=+$('#a_day').value,sets=Math.max(1,+$('#a_sets').value||1),reps=Math.max(1,+$('#a_reps').value||1);S.routine[i].items.push({id:uid(),ex:id,sets,reps,unit:$('#a_unit').value,notes:'',custom:true});save();closeModal();toast('Adicionado em '+DN[i]);render(true)},
  tmStart(){tmStart()},tmPause(){tmPause()},tmSkip(){tmSkip()},tmStop(){tmStop()},
+ askHard(){confirmM('Limpar o cache dos arquivos do app e recarregar com a versão mais nova? Seus treinos e histórico NÃO são apagados.','hardGo','','Atualizar agora')},
+ hardGo(){hardUpdate()},
  openConfig(){go('config')},
  vspeed(k){S.settings.vspeed=k;save();render(true)},
  speed(k){S.settings.speed=k;save();render(true)},
@@ -382,4 +387,5 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>tab(b.dataset.p
    let done=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!had||done)return;done=true;location.reload()});
   }).catch(()=>{})}
  try{const vm=await (await fetch('videos.json',{cache:'no-cache'})).json();for(const k in vm){const v=vm[k],src=typeof v==='string'?v:(v&&v.src);if(EX[k]&&src){EX[k].video=src;if(v&&v.credit)EX[k].vcredit=v.credit}}}catch(e){}
- window.__app={get S(){return S},A,DB,get TM(){return TM}};render();checkOnboarding()}catch(e){$('#main').innerHTML='<div class="card">Não foi possível abrir o armazenamento local: '+esc(e.message)+'<br>Abra o app por um navegador que suporte IndexedDB (não em modo privado).</div>'}})();
+ window.__app={get S(){return S},A,DB,get TM(){return TM}};render();checkOnboarding();
+ fetch('version.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.v&&j.v!==APP_VER){const u=$('#upd');if(u){u.hidden=false;u.querySelector('button').onclick=hardUpdate}}}).catch(()=>{})}catch(e){$('#main').innerHTML='<div class="card">Não foi possível abrir o armazenamento local: '+esc(e.message)+'<br>Abra o app por um navegador que suporte IndexedDB (não em modo privado).</div>'}})();
